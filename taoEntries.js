@@ -1,88 +1,77 @@
 import {firstIndexOf, lastIndexOf, isBlank, isValidOp, isVisible} from './lib.js'
-import {isTree, isOp} from '../tao-parser-js/src/tao-parser.js'
+import {isTree, isOp} from './deps.js'
 import {string} from './string.js'
 
 export const taoEntries = (tao) => {
   const entries = []
   let startIndex = 0
   while (true) {
-    const slice = nextSlice(tao, startIndex)
+    const flat = nextFlat(tao, startIndex)
 
-    console.log(slice)
-
-    if (slice.last) {
-      if (isBlank(slice.last)) return entries
+    if (flat.isLast) {
+      if (isBlank(flat.slice)) return entries
       else {
-        console.error('non', slice)
-        throw Error('non-blank at the end')
+        throw Error(`Only whitespace allowed after entries, got: ${JSON.stringify(flat)}`)
       }
     }
 
-    const {entry, nextIndex} = taoEntry(slice, tao)
+    const {entry, nextIndex} = taoEntry(flat, tao)
     entries.push(entry)
     startIndex = nextIndex 
   }
 }
 
-const nextSlice = (tao, startIndex = 0) => {
+const nextFlat = (tao, startIndex = 0) => {
   const treeIndex = firstIndexOf(tao, isTree, {startIndex})
   const slice = tao.slice(startIndex, treeIndex)
-
-  if (treeIndex === undefined) return {last: slice}
+  if (treeIndex === undefined) return {isLast: true, slice}
 
   const opIndex = firstIndexOf(slice, isOp)
-
-  if (opIndex === undefined) return {note: slice, treeIndex}
+  if (opIndex === undefined) return {isNote: true, slice, treeIndex}
 
   const subslice = slice.slice(0, opIndex)
+  if (isBlank(subslice)) return {isOp: true, slice, op: slice[opIndex].op, opIndex, treeIndex}
 
-  if (isBlank(subslice)) return {op: slice, opIndex, treeIndex}
-
-  return {noteOp: slice, opIndex, treeIndex}
+  return {isNoteOp: true, slice, opIndex, treeIndex}
 }
 
-const keyPart = (slice, tao) => {
+const keyPart = (flat, tao) => {
   // handle single note key: trim both sides; todo: separate noteKey fn
-  if (slice.note) return stringKey(slice.note)
+  if (flat.isNote) return stringKey(flat.slice)
 
   // string key: trim first note left, last note (if any) right
-  if (slice.noteOp) return stringKey(slice.noteOp)
+  if (flat.isNoteOp) return stringKey(flat.slice)
 
-  if (slice.op) {
-    const s = slice.op
-    const op = s[slice.opIndex].op
-    if (isValidOp(op)) return stringKey(slice.op)
+  if (flat.isOp) {
+    const {op, slice} = flat
+    if (isValidOp(op)) return stringKey(slice)
+
     if (op === "'") {
-      // todo: handle '-keys -- allow space or no?
-      // for now allowing
-      if (isBlank(s.slice(slice.opIndex + 1))) return paddedKey(tao, slice.treeIndex)
-      else throw Error('oops')
+      // ?todo move the if-else into paddedKey
+      if (isBlank(slice.slice(flat.opIndex + 1))) return paddedKey(tao, flat.treeIndex)
+      else throw Error(`Only whitespace allowed before padded key, got: ${JSON.stringify(slice)}.`)
     }
-    if (op === '#') {
-      // todo: handle comments -- allow space or no?
-      // for now allowing
-      if (isBlank(s.slice(slice.opIndex + 1))) return keyPart(tao, slice.treeIndex + 1) // comment(tao, slice.treeIndex)
-      else throw Error('oops')
-    }
+
+    // todo: perhaps check if comment 'key' is a valid key
+    if (op === '#') return comment(tao, flat.treeIndex)
   }
 
-  throw Error('oops')
+  throw Error(`Unrecognized key: ${JSON.stringify(flat)}`)
 }
 
-const taoEntry = (slice, tao) => {
-  const {key, valueIndex = slice.treeIndex} = keyPart(slice, tao)
+const taoEntry = (flat, tao) => {
+  const {key, valueIndex = flat.treeIndex} = keyPart(flat, tao)
   const value = taoOfTree(tao[valueIndex])
-
-  // console.log('entry', key, value)
 
   return {entry: [key, value], nextIndex: valueIndex + 1}
 }
 
 const stringKey = (tao) => {
   // note: assuming tao is flat and nonblank
+  const meta = firstIndexOf(tao, p => isOp(p) && p.op === ':')
 
   // string key: trim first note left, last note (if any) right
-  const str = string(tao)
+  const str = meta === undefined? string(tao): string(tao.slice(0, meta))
 
   // we know str is non-blank at this point so both fvi and lvi will be defined
   const fvi = firstIndexOf(str, isVisible)
@@ -96,12 +85,22 @@ const stringKey = (tao) => {
 const taoOfTree = (tree) => tree.tree.tao
 
 const paddedKey = (tao, treeIndex) => {
-  const slice = nextSlice(tao, treeIndex + 1)
+  const flat = nextFlat(tao, treeIndex + 1)
 
-  if (slice.last) throw Error('expected value after padded key')
-  if (!slice.note || !isBlank(slice.note)) throw Error('only blank allowed between padded key and value!')
+  if (flat.isLast) throw Error('Expected value or metadata after padded key')
+
+  if (flat.isOp) {
+    // note ignore meta for now
+    if (flat.op !== ':') throw Error(`Not allowed between padded key and value: ${JSON.stringify(flat)}!`)
+  } else if (!flat.isNote || !isBlank(flat.slice)) throw Error(`Not allowed between padded key and value: ${JSON.stringify(flat)}!`)
 
   const key = string(taoOfTree(tao[treeIndex]))
 
-  return {key, valueIndex: slice.treeIndex}
+  return {key, valueIndex: flat.treeIndex}
+}
+
+const comment = (tao, treeIndex) => {
+  const flat = nextFlat(tao, treeIndex + 1)
+  if (flat.isLast) throw Error('Expected key after comment')
+  return keyPart(flat, tao)
 }

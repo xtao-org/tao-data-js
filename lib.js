@@ -1,14 +1,14 @@
 import {isNote} from './deps.js'
 
-export const firstIndexOf = (tao, fn, {startIndex = 0} = {}) => {
+export const firstIndexOf = (tao, isIt, {startIndex = 0} = {}) => {
   for (let i = startIndex; i < tao.length; ++i) {
-    if (fn(tao[i])) return i
+    if (isIt(tao[i])) return i
   }
   return undefined
 }
-export const lastIndexOf = (tao, fn, {startIndex = tao.length - 1} = {}) => {
+export const lastIndexOf = (tao, isIt, {startIndex = tao.length - 1} = {}) => {
   for (let i = startIndex; i >= 0; --i) {
-    if (fn(tao[i])) return i
+    if (isIt(tao[i])) return i
   }
   return undefined
 }

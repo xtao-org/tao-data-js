@@ -1,5 +1,5 @@
 import {isValidOp} from './lib.js'
-import {isOp, isNote} from '../tao-parser-js/src/tao-parser.js'
+import {isOp, isNote} from './deps.js'
 
 export const string = (tao) => {
   const slices = []

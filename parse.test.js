@@ -4,7 +4,7 @@ import {mappings} from './testData.js'
 const jstr = JSON.stringify
 
 Deno.test({
-  name: 'infer/jsonParse return valid JSON',
+  name: 'parse returns valid JSON',
   fn: () => {
     for (const [i, e] of mappings) {
       const ret = parse(i)

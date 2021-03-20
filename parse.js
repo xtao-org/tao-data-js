@@ -11,10 +11,12 @@ export const parse = (str) => {
 const emptiness = ''
 const infer = (tao) => {
   if (tao.length === 0) return emptiness
+
   const index = firstIndexOf(tao, isTree)
   if (index === undefined) return string(tao)
+
   const slice = tao.slice(0, index)
   if (isBlank(slice)) return taos(tao).map(t => infer(t))
-  console.log('entry', index, slice)
+  
   return Object.fromEntries(taoEntries(tao).map(([k, v]) => [k, infer(v)]))
 }
