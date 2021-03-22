@@ -57,7 +57,7 @@ Parses to the following JSON:
 
 ## Example configuration file
 
-The following excerpt from [the default Visual Studio Code configuration file](https://code.visualstudio.com/docs/getstarted/settings#_default-settings) written in JSONC (JSON with comments) :
+The following excerpt from [the default Visual Studio Code configuration file](https://code.visualstudio.com/docs/getstarted/settings#_default-settings) written in JSONC (JSON with comments):
 
 ```
 {
@@ -82,6 +82,10 @@ The following excerpt from [the default Visual Studio Code configuration file](h
   "diffEditor.wordWrap": "inherit"
 }
 ```
+
+which is rendered as:
+
+![vscode_settings_rendered](vscode_settings_rendered.png)
 
 can be represented in TAO data as:
 
@@ -122,9 +126,28 @@ Diff Editor [
 ]
 ```
 
-This would parse to the following JSON:
+or more compactly:
 
 ```
+Diff Editor [
+  Code Lens [false]
+  Ignore Trim Whitespace [true]
+  Max Computation Time [5000]
+  Render Indicators [true]
+  Render Side By Side [true]
+  Word Wrap [inherit]
+]
+```
+
+or even more compactly:
+
+```
+Diff Editor[Code Lens[false]Ignore Trim Whitespace[true]Max Computation Time[5000]Render Indicators[true]Render Side By Side[true]Word Wrap[inherit]]
+```
+
+all of these would parse to the following JSON:
+
+```json
 {
   "Diff Editor": {
     "Code Lens": "false",
@@ -136,3 +159,7 @@ This would parse to the following JSON:
   }
 }
 ```
+
+Equivalent TAO data once more, but with syntax highlighting:
+
+![vscode_settings_tao](vscode_settings_tao.png)
