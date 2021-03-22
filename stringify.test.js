@@ -9,9 +9,6 @@ Deno.test({
   fn: () => {
     for (const [e, i] of mappings) {
       const ret = stringify(i, {indent: 2})
-
-      console.log(ret)
-      // console.log(jstr(i, null, 2))
   
       console.assert(jstr(parse(e)) === jstr(parse(ret)), e, ret, jstr(parse(e)), jstr(parse(ret)))
       console.assert(jstr(i) === jstr(parse(ret)), e, ret, jstr(i))

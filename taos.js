@@ -1,7 +1,6 @@
 import {isBlankNote} from './lib.js'
 import {isTree} from './deps.js'
 
-// ?todo: error on empty tao?
 export const taos = (tao) => {
   const taos = []
   for (const part of tao) {

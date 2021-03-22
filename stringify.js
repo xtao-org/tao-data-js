@@ -1,6 +1,5 @@
 import {isValidOp, firstIndexOf, isVisible} from './lib.js'
 
-// ?accept a serialize/transform that can return a string, an array, or an object (or the value unchanged if it gives up)
 export const stringify = (value, {indent = 0} = {}) => {
   return doStringify(value, {
     indent: indentToString(indent), 
