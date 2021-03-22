@@ -1,1 +1,1 @@
-export * from '../tao-parser-js/src/tao-parser.js'
+export * from 'https://cdn.jsdelivr.net/gh/tree-annotation/tao-parser-ts@v1-2021-03-22-beta/mod.ts'
